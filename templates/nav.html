@@ -1,0 +1,19 @@
+{{define "nav"}}
+<div class='top-title'>
+    <h1><u>m1nz1</u></h1>
+</div>
+<ul class='nav nav-tabs justify-content-center'>
+    <li>
+        <a class='nav-link {{if (eq .PageTitle "About")}}active{{end}}' href="/about">about</a>
+    </li>
+    <li>
+        <a class='nav-link {{if (eq .PageTitle "Notes")}}active{{end}}' href="/notes/">notes</a>
+    </li>
+    <li>
+        <a class='nav-link {{if (eq .PageTitle "Projects")}}active{{end}}' href="/projects/">projects</a>
+    </li>
+    <li>
+        <a class='nav-link {{if (eq .PageTitle "Photography")}}active{{end}}' href="/photography/">photography</a>
+    </li>
+</ul>
+{{end}}

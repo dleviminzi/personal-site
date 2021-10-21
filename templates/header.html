@@ -1,0 +1,36 @@
+{{define "header"}}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>m1nz1/{{.PageTitle}}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-F3w7mX95PdgyTmZZMECAngseQB83DfGTowi0iMjiWaeVhAn4FJkqJByhZMI3AhiU" crossorigin="anonymous">
+
+    <style>
+        .top-title {
+            text-transform: lowercase;
+            text-align: center;
+        }
+
+        .nav-link {
+            transition: none;
+        }
+
+        .nav>li>a {
+            padding-top: 1px;
+            padding-bottom: 1px;
+            padding-left: 7px;
+            padding-right: 7px;
+        }
+
+        .nav>li>a.active {
+            border-bottom: 1px solid blue;
+            background-color: transparent;
+        }
+    </style>
+</head>
+{{end}}

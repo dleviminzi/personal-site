@@ -1,0 +1,20 @@
+{{define "about"}}
+{{template "header" .}}
+{{template "nav" .}}
+
+<h2> About me </h2>
+<p> Blah balh nobody cares about me. wow so emo
+</p>
+
+<h2> Experiences </h2>
+{{range .Experiences}}
+<div class='page-content'>
+    <h3> {{.Title}}</h3>
+    <h6>
+        {{.StartDate.Format "Jan 02, 2006"}} - {{.EndDate.Format "Jan 02, 2006"}}
+    </h6>
+    <p>{{.Description}}</p>
+</div>
+{{end}}
+{{template "footer"}}
+{{end}}

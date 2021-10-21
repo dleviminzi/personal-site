@@ -1,0 +1,18 @@
+{{define "notes"}}
+{{template "header" .}}
+{{template "nav" .}}
+<h3><u>Notes</u></h3>
+{{range .Notes}}
+<div class='page-content'>
+    <h4>
+        <!-- need to add path to notes/title-of-note -->
+        <a href="/notes/{{.Title}}">
+            {{.Title}}
+        </a>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {{.Topic}}
+    </h4>
+    {{.Content}}
+</div>
+{{end}}
+{{template "footer"}}
+{{end}}
