@@ -48,8 +48,11 @@ func main() {
 	sig := <-sigChan
 	logger.Println("Received Terminate, Shutting Down.", sig)
 
-	timeoutContext, _ := context.WithTimeout(context.Background(), 30*time.Second)
-	server.Shutdown(timeoutContext)
+	timeoutContext, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	if err := server.Shutdown(timeoutContext); err != nil {
+		logger.Fatal(err)
+	}
 }
 
 func match(givenPath string, existingPath string) bool {
