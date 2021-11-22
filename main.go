@@ -24,20 +24,18 @@ func main() {
 		logger.Fatal(err)
 	}
 
-	r := mux.NewRouter()
-	r.HandleFunc("/", handlers.NewAbout(logger, db).ServeHTTP)
-	r.HandleFunc("/about", handlers.NewAbout(logger, db).ServeHTTP)
-	r.HandleFunc("/projects/", handlers.NewProjectsList(logger, db).ServeHTTP)
-	r.HandleFunc("/notes/", handlers.NewNotesList(logger, db).ServeHTTP)
-	r.HandleFunc("/notes/{noteName:[a-z]+}", handlers.NewNote(logger, db).ServeHTTP)
-
-	// replace w/ mux
-	// serveMux := http.NewServeMux()
-	// serveMux.HandleFunc("/", Serve(logger, db))
+	// Route handling logic
+	router := mux.NewRouter()
+	router.HandleFunc("/", handlers.NewAbout(logger, db).ServeHTTP)
+	router.HandleFunc("/about", handlers.NewAbout(logger, db).ServeHTTP)
+	router.HandleFunc("/projects/", handlers.NewProjectsList(logger, db).ServeHTTP)
+	noteSubrouter := router.PathPrefix("/notes").Subrouter() /* we have note list and specific notes */
+	noteSubrouter.HandleFunc("/", handlers.NewNotesList(logger, db).ServeHTTP)
+	noteSubrouter.HandleFunc("/{noteName:[a-z]+}/", handlers.NewNote(logger, db).ServeHTTP)
 
 	server := &http.Server{
 		Addr:         ":9990",
-		Handler:      r,
+		Handler:      router,
 		IdleTimeout:  120 * time.Second,
 		ReadTimeout:  1 * time.Second,
 		WriteTimeout: 1 * time.Second,

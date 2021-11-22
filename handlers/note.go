@@ -15,11 +15,10 @@ type ReqNote struct {
 	db        *sql.DB
 	PageTitle string
 	NoteTitle string
-	ReqNote   data.Note /* this name is bad */
+	ReqNote   data.Note
 }
 
 func NewNote(logger *log.Logger, db *sql.DB) *ReqNote {
-	// do some stuff to get note id from path
 	return &ReqNote{logger, db, "Notes", "", data.Note{}}
 }
 
