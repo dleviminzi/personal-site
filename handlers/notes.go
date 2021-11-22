@@ -33,7 +33,8 @@ func (noteList *NoteList) dbFetch() error {
 	}
 	defer rows.Close()
 
-	// iterate through result rows and return array
+	// TODO: perhaps add FromDB method to struct and FromJSON method as well
+	// would make things cleaner
 	for rows.Next() {
 		var note data.Note
 

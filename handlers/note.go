@@ -5,9 +5,9 @@ import (
 	"html/template"
 	"log"
 	"net/http"
-	"strings"
 
 	"github.com/dleviminzi/personal-site/data"
+	"github.com/gorilla/mux"
 )
 
 type ReqNote struct {
@@ -18,12 +18,9 @@ type ReqNote struct {
 	ReqNote   data.Note /* this name is bad */
 }
 
-func NewNote(logger *log.Logger, db *sql.DB, path string) *ReqNote {
+func NewNote(logger *log.Logger, db *sql.DB) *ReqNote {
 	// do some stuff to get note id from path
-	pathSegs := strings.Split(path, "/")
-	title := pathSegs[len(pathSegs)-1]
-
-	return &ReqNote{logger, db, "Notes", title, data.Note{}}
+	return &ReqNote{logger, db, "Notes", "", data.Note{}}
 }
 
 func (note *ReqNote) dbFetch(title string) error {
@@ -35,6 +32,9 @@ func (note *ReqNote) dbFetch(title string) error {
 }
 
 func (note *ReqNote) ServeHTTP(responseWriter http.ResponseWriter, request *http.Request) {
+	vars := mux.Vars(request)
+	note.NoteTitle = vars["noteName"]
+
 	err := note.dbFetch(note.NoteTitle)
 	if err != nil {
 		note.logger.Fatal(err)

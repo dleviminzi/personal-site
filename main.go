@@ -7,9 +7,10 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"regexp"
+	"syscall"
 	"time"
 
+	"github.com/gorilla/mux"
 	_ "github.com/mattn/go-sqlite3"
 
 	"github.com/dleviminzi/personal-site/handlers"
@@ -23,12 +24,20 @@ func main() {
 		logger.Fatal(err)
 	}
 
-	serveMux := http.NewServeMux()
-	serveMux.HandleFunc("/", Serve(logger, db))
+	r := mux.NewRouter()
+	r.HandleFunc("/", handlers.NewAbout(logger, db).ServeHTTP)
+	r.HandleFunc("/about", handlers.NewAbout(logger, db).ServeHTTP)
+	r.HandleFunc("/projects/", handlers.NewProjectsList(logger, db).ServeHTTP)
+	r.HandleFunc("/notes/", handlers.NewNotesList(logger, db).ServeHTTP)
+	r.HandleFunc("/notes/{noteName:[a-z]+}", handlers.NewNote(logger, db).ServeHTTP)
+
+	// replace w/ mux
+	// serveMux := http.NewServeMux()
+	// serveMux.HandleFunc("/", Serve(logger, db))
 
 	server := &http.Server{
 		Addr:         ":9990",
-		Handler:      serveMux,
+		Handler:      r,
 		IdleTimeout:  120 * time.Second,
 		ReadTimeout:  1 * time.Second,
 		WriteTimeout: 1 * time.Second,
@@ -41,10 +50,12 @@ func main() {
 		}
 	}()
 
+	// Set up a channel for interupt/terminate signals
 	sigChan := make(chan os.Signal, 1)
-	signal.Notify(sigChan, os.Interrupt)
-	signal.Notify(sigChan, os.Kill)
+	signal.Notify(sigChan, syscall.SIGINT)
+	signal.Notify(sigChan, syscall.SIGTERM)
 
+	// Block waiting for interupt/terminate input
 	sig := <-sigChan
 	logger.Println("Received Terminate, Shutting Down.", sig)
 
@@ -52,40 +63,5 @@ func main() {
 	defer cancel()
 	if err := server.Shutdown(timeoutContext); err != nil {
 		logger.Fatal(err)
-	}
-}
-
-func match(givenPath string, existingPath string) bool {
-	// TODO: figure out how to handle error here
-	existingPathRegExp := regexp.MustCompile(existingPath)
-	result := existingPathRegExp.MatchString(givenPath)
-
-	return result
-}
-
-// Serve takes the path and determines the proper handler
-// this is largely based on https://benhoyt.com/writings/go-routing/
-func Serve(logger *log.Logger, db *sql.DB) http.HandlerFunc {
-	return func(responseWriter http.ResponseWriter, request *http.Request) {
-		var handler http.Handler
-		path := request.URL.Path
-
-		switch {
-		case match(path, `^/$`): /* return react app */
-			handler = handlers.NewAbout(logger, db)
-		case match(path, `^/about$`):
-			handler = handlers.NewAbout(logger, db)
-		case match(path, `^/projects[/]?$`):
-			handler = handlers.NewProjectsList(logger, db)
-		case match(path, `^/notes[/]?$`):
-			handler = handlers.NewNotesList(logger, db)
-		case match(path, `^/notes/([a-z]+)$`): /* return notes content for title */
-			handler = handlers.NewNote(logger, db, path)
-		default:
-			http.NotFound(responseWriter, request)
-			return
-		}
-
-		handler.ServeHTTP(responseWriter, request)
 	}
 }

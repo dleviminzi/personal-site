@@ -10,19 +10,6 @@ import (
 	_ "github.com/lib/pq"
 )
 
-/*
-
-type Project struct {
-	Title       string `json:"title"`
-	Description string `json:"description"`
-	GithubLink  string `json:"github_link"`
-	Status      string `json:"status"`
-	StartDate   string `json:"start_date"`
-	EndDate     string `json:"end_date"`
-}
-
-*/
-
 // ProjectList contains array of Project
 type ProjectList struct {
 	logger    *log.Logger
