@@ -4,36 +4,27 @@ import (
 	"context"
 	"database/sql"
 	"log"
-	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
-	"github.com/gorilla/mux"
+	"github.com/dleviminzi/personal-site/router"
+	"github.com/dleviminzi/personal-site/server"
 	_ "github.com/mattn/go-sqlite3"
-
-	"github.com/dleviminzi/personal-site/handlers"
 )
 
 func main() {
-	logger := log.New(os.Stdout, "api", log.LstdFlags)
+	logger := log.New(os.Stdout, "site: ", log.LstdFlags)
 
 	db, err := sql.Open("sqlite3", "./site.db")
 	if err != nil {
 		logger.Fatal(err)
 	}
 
-	// Route handling logic
-	r := mux.NewRouter()
-	notesSR := r.PathPrefix("/notes").Subrouter() /* we have note list and specific notes */
-	notesSR.HandleFunc("/", handlers.HandleNotesList(logger, db).ServeHTTP).Methods("GET")
-	notesSR.HandleFunc("/{noteName}", handlers.HandleNote(logger, db).ServeHTTP).Methods("GET")
-	r.HandleFunc("/", handlers.HandleAbout(logger, db).ServeHTTP).Methods("GET")
-	r.HandleFunc("/about", handlers.HandleAbout(logger, db).ServeHTTP).Methods("GET")
-	r.HandleFunc("/projects/", handlers.HandleProjectsList(logger, db).ServeHTTP).Methods("GET")
-
-	server := NewServer(r, ":9090")
+	// Initiate router and server
+	r := router.New(logger, db)
+	server := server.New(r, ":9090")
 
 	go func() {
 		err := server.ListenAndServeTLS("cert.pem", "key.pem")
@@ -56,16 +47,4 @@ func main() {
 	if err := server.Shutdown(timeoutContext); err != nil {
 		logger.Fatal(err)
 	}
-}
-
-func NewServer(router http.Handler, address string) *http.Server {
-	s := &http.Server{
-		Addr:         address,
-		Handler:      router,
-		IdleTimeout:  120 * time.Second,
-		ReadTimeout:  1 * time.Second,
-		WriteTimeout: 1 * time.Second,
-	}
-
-	return s
 }
