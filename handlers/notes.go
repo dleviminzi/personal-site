@@ -12,22 +12,22 @@ import (
 
 // NoteList contains array of Project
 type NoteList struct {
-	logger    *log.Logger
+	l         *log.Logger
 	db        *sql.DB
 	Notes     []data.Note
 	PageTitle string
 }
 
-// NewNotesList constructs a new list of
-func NewNotesList(logger *log.Logger, db *sql.DB) *NoteList {
-	return &NoteList{logger, db, []data.Note{}, "Notes"}
+// HandleNotesList constructs a new list of
+func HandleNotesList(l *log.Logger, db *sql.DB) *NoteList {
+	return &NoteList{l, db, []data.Note{}, "Notes"}
 }
 
-func (noteList *NoteList) dbFetch() error {
+func (nl *NoteList) dbFetch() error {
 	var fetchedNotes []data.Note
 
 	// query the database
-	rows, err := noteList.db.Query(data.NoteListQuery)
+	rows, err := nl.db.Query(data.NoteListQuery)
 	if err != nil {
 		return err
 	}
@@ -46,23 +46,25 @@ func (noteList *NoteList) dbFetch() error {
 	}
 
 	if err = rows.Err(); err != nil {
-		noteList.Notes = fetchedNotes
+		nl.Notes = fetchedNotes
 		return err
 	}
-	noteList.Notes = fetchedNotes
+	nl.Notes = fetchedNotes
 	return nil
 }
 
-func (noteList *NoteList) ServeHTTP(responseWriter http.ResponseWriter, request *http.Request) {
-	err := noteList.dbFetch()
+func (nl *NoteList) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	err := nl.dbFetch()
 	if err != nil {
-		noteList.logger.Fatal(err)
+		nl.l.Fatal(err)
 	}
+	w.Header().Add("Strict-Transport-Security", "max-age=63072000; includeSubDomains")
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
 	// set up template and write it
-	noteListTemplate := template.Must(template.New("notes").ParseFiles("./templates/header.html", "./templates/nav.html", "./templates/notes.html", "./templates/footer.html"))
-	err = noteListTemplate.Execute(responseWriter, noteList)
+	nlTemp := template.Must(template.New("notes").ParseFiles("./templates/header.html", "./templates/nav.html", "./templates/notes.html", "./templates/footer.html"))
+	err = nlTemp.Execute(w, nl)
 	if err != nil {
-		noteList.logger.Fatal(err)
+		nl.l.Fatal(err)
 	}
 }

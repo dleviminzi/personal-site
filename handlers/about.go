@@ -11,22 +11,22 @@ import (
 
 // About simply contains a logger to send welcome message through
 type About struct {
-	logger      *log.Logger
+	l           *log.Logger
 	db          *sql.DB
 	Experiences []data.ExperienceItem
 	PageTitle   string
 }
 
-// NewAbout constructs a Welcome
-func NewAbout(logger *log.Logger, db *sql.DB) *About {
-	return &About{logger, db, []data.ExperienceItem{}, "About"}
+// HandleAbout constructs a Welcome
+func HandleAbout(l *log.Logger, db *sql.DB) *About {
+	return &About{l, db, []data.ExperienceItem{}, "About"}
 }
 
-func (about *About) dbFetch() error {
+func (a *About) dbFetch() error {
 	var fetchedExperiences []data.ExperienceItem
 
 	// query the database
-	rows, err := about.db.Query(data.ExperienceItemsQuery)
+	rows, err := a.db.Query(data.ExperienceItemsQuery)
 	if err != nil {
 		return err
 	}
@@ -44,23 +44,25 @@ func (about *About) dbFetch() error {
 	}
 
 	if err = rows.Err(); err != nil {
-		about.Experiences = fetchedExperiences
+		a.Experiences = fetchedExperiences
 		return err
 	}
-	about.Experiences = fetchedExperiences
+	a.Experiences = fetchedExperiences
 	return nil
 }
 
-func (about *About) ServeHTTP(responseWriter http.ResponseWriter, request *http.Request) {
-	err := about.dbFetch()
+func (a *About) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	err := a.dbFetch()
 	if err != nil {
-		about.logger.Fatal(err)
+		a.l.Fatal(err)
 	}
+	w.Header().Add("Strict-Transport-Security", "max-age=63072000; includeSubDomains")
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
 	// set up template and write it
-	aboutTemplate := template.Must(template.New("about").ParseFiles("./templates/header.html", "./templates/nav.html", "./templates/about.html", "./templates/footer.html"))
-	err = aboutTemplate.Execute(responseWriter, about)
+	aboutTemp := template.Must(template.New("about").ParseFiles("./templates/header.html", "./templates/nav.html", "./templates/about.html", "./templates/footer.html"))
+	err = aboutTemp.Execute(w, a)
 	if err != nil {
-		about.logger.Fatal(err)
+		a.l.Fatal(err)
 	}
 }

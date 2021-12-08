@@ -25,24 +25,18 @@ func main() {
 	}
 
 	// Route handling logic
-	router := mux.NewRouter()
-	router.HandleFunc("/", handlers.NewAbout(logger, db).ServeHTTP)
-	router.HandleFunc("/about", handlers.NewAbout(logger, db).ServeHTTP)
-	router.HandleFunc("/projects/", handlers.NewProjectsList(logger, db).ServeHTTP)
-	noteSubrouter := router.PathPrefix("/notes").Subrouter() /* we have note list and specific notes */
-	noteSubrouter.HandleFunc("/", handlers.NewNotesList(logger, db).ServeHTTP)
-	noteSubrouter.HandleFunc("/{noteName:[a-z]+}/", handlers.NewNote(logger, db).ServeHTTP)
+	r := mux.NewRouter()
+	notesSR := r.PathPrefix("/notes").Subrouter() /* we have note list and specific notes */
+	notesSR.HandleFunc("/", handlers.HandleNotesList(logger, db).ServeHTTP).Methods("GET")
+	notesSR.HandleFunc("/{noteName}", handlers.HandleNote(logger, db).ServeHTTP).Methods("GET")
+	r.HandleFunc("/", handlers.HandleAbout(logger, db).ServeHTTP).Methods("GET")
+	r.HandleFunc("/about", handlers.HandleAbout(logger, db).ServeHTTP).Methods("GET")
+	r.HandleFunc("/projects/", handlers.HandleProjectsList(logger, db).ServeHTTP).Methods("GET")
 
-	server := &http.Server{
-		Addr:         ":9990",
-		Handler:      router,
-		IdleTimeout:  120 * time.Second,
-		ReadTimeout:  1 * time.Second,
-		WriteTimeout: 1 * time.Second,
-	}
+	server := NewServer(r, ":9090")
 
 	go func() {
-		err := server.ListenAndServe()
+		err := server.ListenAndServeTLS("cert.pem", "key.pem")
 		if err != nil {
 			logger.Fatal(err)
 		}
@@ -62,4 +56,16 @@ func main() {
 	if err := server.Shutdown(timeoutContext); err != nil {
 		logger.Fatal(err)
 	}
+}
+
+func NewServer(router http.Handler, address string) *http.Server {
+	s := &http.Server{
+		Addr:         address,
+		Handler:      router,
+		IdleTimeout:  120 * time.Second,
+		ReadTimeout:  1 * time.Second,
+		WriteTimeout: 1 * time.Second,
+	}
+
+	return s
 }

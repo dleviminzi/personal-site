@@ -12,22 +12,22 @@ import (
 
 // ProjectList contains array of Project
 type ProjectList struct {
-	logger    *log.Logger
+	l         *log.Logger
 	db        *sql.DB
 	Projects  []data.Project
 	PageTitle string
 }
 
-// NewProjectsList constructs a new list of
-func NewProjectsList(l *log.Logger, db *sql.DB) *ProjectList {
+// HandleProjectsList constructs a new list of
+func HandleProjectsList(l *log.Logger, db *sql.DB) *ProjectList {
 	return &ProjectList{l, db, []data.Project{}, "Projects"}
 }
 
-func (projectList *ProjectList) dbFetch() error {
+func (pl *ProjectList) dbFetch() error {
 	var fetchedProjects []data.Project
 
 	// query the database
-	rows, err := projectList.db.Query(data.ProjectListQuery)
+	rows, err := pl.db.Query(data.ProjectListQuery)
 	if err != nil {
 		return err
 	}
@@ -46,23 +46,25 @@ func (projectList *ProjectList) dbFetch() error {
 	}
 
 	if err = rows.Err(); err != nil {
-		projectList.Projects = fetchedProjects
+		pl.Projects = fetchedProjects
 		return err
 	}
-	projectList.Projects = fetchedProjects
+	pl.Projects = fetchedProjects
 	return nil
 }
 
 func (pl *ProjectList) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	err := pl.dbFetch()
 	if err != nil {
-		pl.logger.Fatal(err)
+		pl.l.Fatal(err)
 	}
+	w.Header().Add("Strict-Transport-Security", "max-age=63072000; includeSubDomains")
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
 	// set up template and write it
-	projectTemplate := template.Must(template.New("projects").ParseFiles("./templates/header.html", "./templates/nav.html", "./templates/projects.html", "./templates/footer.html"))
-	err = projectTemplate.Execute(w, pl)
+	projectTemp := template.Must(template.New("projects").ParseFiles("./templates/header.html", "./templates/nav.html", "./templates/projects.html", "./templates/footer.html"))
+	err = projectTemp.Execute(w, pl)
 	if err != nil {
-		pl.logger.Fatal(err)
+		pl.l.Fatal(err)
 	}
 }

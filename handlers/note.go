@@ -11,38 +11,41 @@ import (
 )
 
 type ReqNote struct {
-	logger    *log.Logger
+	l         *log.Logger
 	db        *sql.DB
 	PageTitle string
 	NoteTitle string
 	ReqNote   data.Note
 }
 
-func NewNote(logger *log.Logger, db *sql.DB) *ReqNote {
-	return &ReqNote{logger, db, "Notes", "", data.Note{}}
+func HandleNote(l *log.Logger, db *sql.DB) *ReqNote {
+	return &ReqNote{l, db, "Notes", "", data.Note{}}
 }
 
-func (note *ReqNote) dbFetch(title string) error {
-	err := note.db.QueryRow(data.NoteQuery, title).Scan(&note.ReqNote.Title, &note.ReqNote.Topic, &note.ReqNote.Content)
+func (n *ReqNote) dbFetch(title string) error {
+	err := n.db.QueryRow(data.NoteQuery, title).Scan(&n.ReqNote.Title, &n.ReqNote.Topic, &n.ReqNote.Content)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (note *ReqNote) ServeHTTP(responseWriter http.ResponseWriter, request *http.Request) {
-	vars := mux.Vars(request)
-	note.NoteTitle = vars["noteName"]
+func (n *ReqNote) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	n.NoteTitle = vars["noteName"]
 
-	err := note.dbFetch(note.NoteTitle)
+	w.Header().Add("Strict-Transport-Security", "max-age=63072000; includeSubDomains")
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+
+	err := n.dbFetch(n.NoteTitle)
 	if err != nil {
-		note.logger.Fatal(err)
+		n.l.Fatal(err)
 	}
 
 	// set up template and write it
-	noteTemplate := template.Must(template.New("note").ParseFiles("./templates/header.html", "./templates/nav.html", "./templates/note.html", "./templates/footer.html"))
-	err = noteTemplate.Execute(responseWriter, note)
+	noteTemp := template.Must(template.New("note").ParseFiles("./templates/header.html", "./templates/nav.html", "./templates/note.html", "./templates/footer.html"))
+	err = noteTemp.Execute(w, n)
 	if err != nil {
-		note.logger.Fatal(err)
+		n.l.Fatal(err)
 	}
 }
