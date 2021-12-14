@@ -1,9 +1,18 @@
-package data
+package site
 
 import (
 	"html/template"
 	"time"
 )
+
+// DatabaseInfo contains information required to establish connection to database
+type DatabaseInfo struct {
+	DBName   string /* either test or site */
+	Host     string
+	Port     string
+	User     string
+	Password string
+}
 
 // ExperienceItem gives skeleton for a work experience entry
 type ExperienceItem struct {
@@ -32,13 +41,6 @@ type Project struct {
 	EndDate     time.Time `json:"end_date"`
 }
 
-// Note contains content regarding a specific subject
-type Note struct {
-	Title   string        `json:"title"`
-	Topic   string        `json:"topic"`
-	Content template.HTML `json:"content"`
-}
-
 // Photo provides metadata for a photo
 type Photo struct {
 	Title       string `json:"name"`
@@ -46,4 +48,11 @@ type Photo struct {
 	Location    string `json:"location"`
 	Created     string `json:"created"`
 	PhotoPath   string `json:"photo_path"`
+}
+
+// Note contains content regarding a specific subject
+type Note struct {
+	Title   string        `json:"title"`
+	Topic   string        `json:"topic"`
+	Content template.HTML `json:"content"`
 }

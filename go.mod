@@ -1,4 +1,4 @@
-module github.com/dleviminzi/personal-site
+module github.com/dleviminzi/site
 
 go 1.17
 

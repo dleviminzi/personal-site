@@ -1,4 +1,4 @@
-package handlers
+package pages
 
 import (
 	"database/sql"
@@ -6,35 +6,40 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/dleviminzi/personal-site/data"
+	site "github.com/dleviminzi/site"
 )
 
-// About simply contains a logger to send welcome message through
+// About is just the index page of the site with my bio
 type About struct {
 	l           *log.Logger
 	db          *sql.DB
-	Experiences []data.ExperienceItem
+	Experiences []site.ExperienceItem
 	PageTitle   string
 }
 
 // HandleAbout constructs a Welcome
-func HandleAbout(l *log.Logger, db *sql.DB) *About {
-	return &About{l, db, []data.ExperienceItem{}, "About"}
+func NewAbout(l *log.Logger, db *sql.DB) *About {
+	return &About{l, db, []site.ExperienceItem{}, "about"}
 }
 
 func (a *About) dbFetch() error {
-	var fetchedExperiences []data.ExperienceItem
+	var fetchedExperiences []site.ExperienceItem
 
 	// query the database
-	rows, err := a.db.Query(data.ExperienceItemsQuery)
+	rows, err := a.db.Query(site.ExperienceItemsQuery)
 	if err != nil {
 		return err
 	}
-	defer rows.Close()
+	defer func(rows *sql.Rows) {
+		err := rows.Close()
+		if err != nil {
+			log.Println("Failed to close rows... Probably not a good sign")
+		}
+	}(rows)
 
 	// iterate through result rows and return array
 	for rows.Next() {
-		var exp data.ExperienceItem
+		var exp site.ExperienceItem
 
 		if err = rows.Scan(&exp.ItemType, &exp.Title, &exp.Description, &exp.StartDate, &exp.EndDate); err != nil {
 			return err
@@ -51,7 +56,7 @@ func (a *About) dbFetch() error {
 	return nil
 }
 
-func (a *About) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (a *About) Serve(w http.ResponseWriter, r *http.Request) {
 	err := a.dbFetch()
 	if err != nil {
 		a.l.Fatal(err)
@@ -60,7 +65,7 @@ func (a *About) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
 	// set up template and write it
-	aboutTemp := template.Must(template.New("about").ParseFiles("./templates/header.html", "./templates/nav.html", "./templates/about.html", "./templates/footer.html"))
+	aboutTemp := template.Must(template.New("about").ParseFiles(htmlTemplates("about")...))
 	err = aboutTemp.Execute(w, a)
 	if err != nil {
 		a.l.Fatal(err)

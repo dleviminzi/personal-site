@@ -1,4 +1,4 @@
-package handlers
+package pages
 
 import (
 	"database/sql"
@@ -6,28 +6,29 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/dleviminzi/personal-site/data"
 	_ "github.com/lib/pq"
+
+	"github.com/dleviminzi/site"
 )
 
 // NoteList contains array of Project
 type NoteList struct {
 	l         *log.Logger
 	db        *sql.DB
-	Notes     []data.Note
+	Notes     []site.Note
 	PageTitle string
 }
 
 // HandleNotesList constructs a new list of
-func HandleNotesList(l *log.Logger, db *sql.DB) *NoteList {
-	return &NoteList{l, db, []data.Note{}, "Notes"}
+func NewNotesList(l *log.Logger, db *sql.DB) *NoteList {
+	return &NoteList{l, db, []site.Note{}, "Notes"}
 }
 
 func (nl *NoteList) dbFetch() error {
-	var fetchedNotes []data.Note
+	var fetchedNotes []site.Note
 
 	// query the database
-	rows, err := nl.db.Query(data.NoteListQuery)
+	rows, err := nl.db.Query(site.NoteListQuery)
 	if err != nil {
 		return err
 	}
@@ -36,7 +37,7 @@ func (nl *NoteList) dbFetch() error {
 	// TODO: perhaps add FromDB method to struct and FromJSON method as well
 	// would make things cleaner
 	for rows.Next() {
-		var note data.Note
+		var note site.Note
 
 		if err = rows.Scan(&note.Title, &note.Topic, &note.Content); err != nil {
 			return err
@@ -53,7 +54,7 @@ func (nl *NoteList) dbFetch() error {
 	return nil
 }
 
-func (nl *NoteList) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (nl *NoteList) Serve(w http.ResponseWriter, r *http.Request) {
 	err := nl.dbFetch()
 	if err != nil {
 		nl.l.Fatal(err)
@@ -62,7 +63,8 @@ func (nl *NoteList) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
 	// set up template and write it
-	nlTemp := template.Must(template.New("notes").ParseFiles("./templates/header.html", "./templates/nav.html", "./templates/notes.html", "./templates/footer.html"))
+	// TODO: update templates directory to html directory and move that directory into this folder!
+	nlTemp := template.Must(template.New("notes").ParseFiles(htmlTemplates("notes")...))
 	err = nlTemp.Execute(w, nl)
 	if err != nil {
 		nl.l.Fatal(err)

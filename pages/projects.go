@@ -1,4 +1,4 @@
-package handlers
+package pages
 
 import (
 	"database/sql"
@@ -6,7 +6,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/dleviminzi/personal-site/data"
+	site "github.com/dleviminzi/site"
 	_ "github.com/lib/pq"
 )
 
@@ -14,20 +14,20 @@ import (
 type ProjectList struct {
 	l         *log.Logger
 	db        *sql.DB
-	Projects  []data.Project
+	Projects  []site.Project
 	PageTitle string
 }
 
 // HandleProjectsList constructs a new list of
-func HandleProjectsList(l *log.Logger, db *sql.DB) *ProjectList {
-	return &ProjectList{l, db, []data.Project{}, "Projects"}
+func NewProjectsList(l *log.Logger, db *sql.DB) *ProjectList {
+	return &ProjectList{l, db, []site.Project{}, "Projects"}
 }
 
 func (pl *ProjectList) dbFetch() error {
-	var fetchedProjects []data.Project
+	var fetchedProjects []site.Project
 
 	// query the database
-	rows, err := pl.db.Query(data.ProjectListQuery)
+	rows, err := pl.db.Query(site.ProjectListQuery)
 	if err != nil {
 		return err
 	}
@@ -35,7 +35,7 @@ func (pl *ProjectList) dbFetch() error {
 
 	// iterate through result rows and return array
 	for rows.Next() {
-		var project data.Project
+		var project site.Project
 
 		if err = rows.Scan(&project.Title, &project.Description, &project.GithubLink,
 			&project.Status, &project.StartDate, &project.EndDate); err != nil {
@@ -53,7 +53,7 @@ func (pl *ProjectList) dbFetch() error {
 	return nil
 }
 
-func (pl *ProjectList) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (pl *ProjectList) Serve(w http.ResponseWriter, r *http.Request) {
 	err := pl.dbFetch()
 	if err != nil {
 		pl.l.Fatal(err)
@@ -62,7 +62,7 @@ func (pl *ProjectList) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
 	// set up template and write it
-	projectTemp := template.Must(template.New("projects").ParseFiles("./templates/header.html", "./templates/nav.html", "./templates/projects.html", "./templates/footer.html"))
+	projectTemp := template.Must(template.New("projects").ParseFiles(htmlTemplates("projects")...))
 	err = projectTemp.Execute(w, pl)
 	if err != nil {
 		pl.l.Fatal(err)

@@ -1,9 +1,9 @@
-INSERT INTO notes (title, topic, content) VALUES ('Test Note 1', 'tests', 'This is a test'),
-                                                 ('Test Note 2', 'tests', 'This is a test'),
-                                                 ('Test Note 3', 'tests', 'This is a test'),
-                                                 ('Test Note 4', 'tests', 'This is a test'),
-                                                 ('Test Note 5', 'tests', 'This is a test'),
-                                                 ('Test Note 6', 'tests', 'This is a test');
+INSERT INTO notes (title, topic, content) VALUES ('TestNote1', 'tests', 'This is a test'),
+                                                 ('TestNote2', 'tests', 'This is a test'),
+                                                 ('TestNote3', 'tests', 'This is a test'),
+                                                 ('TestNote4', 'tests', 'This is a test'),
+                                                 ('TestNote5', 'tests', 'This is a test'),
+                                                 ('TestNote6', 'tests', 'This is a test');
 
 INSERT INTO experience_items (item_type, title, description, start_date, end_date) VALUES ('tests', 'Test EI 1', 'This is another test', '2019-01-05 00:00:00.000', '2021-03-06 00:00:00.000'),
                                                                                           ('tests', 'Test EI 2', 'This is another test', '2019-01-06 00:00:00.000', '2021-01-06 00:00:00.000'),

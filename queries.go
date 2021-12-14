@@ -1,4 +1,4 @@
-package data
+package site
 
 var ExperienceItemsQuery = `SELECT item_type, title, description, start_date, end_date
 	 				   		FROM experience_items;`
