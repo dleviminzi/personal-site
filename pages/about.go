@@ -59,7 +59,9 @@ func (a *About) dbFetch() error {
 func (a *About) Serve(w http.ResponseWriter, r *http.Request) {
 	err := a.dbFetch()
 	if err != nil {
-		a.l.Fatal(err)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("Could not locate that note"))
+		return
 	}
 	w.Header().Add("Strict-Transport-Security", "max-age=63072000; includeSubDomains")
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
@@ -68,6 +70,8 @@ func (a *About) Serve(w http.ResponseWriter, r *http.Request) {
 	aboutTemp := template.Must(template.New("about").ParseFiles(htmlTemplates("about")...))
 	err = aboutTemp.Execute(w, a)
 	if err != nil {
-		a.l.Fatal(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Failed to load template for about page"))
+		return
 	}
 }

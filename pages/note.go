@@ -39,9 +39,8 @@ func (n *Note) Serve(w http.ResponseWriter, r *http.Request) {
 
 	err := n.dbFetch(n.NoteTitle)
 	if err != nil {
-		notFound := template.Must(template.New("notfound").ParseFiles(htmlTemplates("notfound")...))
-		_ = notFound.Execute(w, n) // should I be catching an error here?
-		n.l.Printf("Failed to find note titled: %s", n.NoteTitle)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("Could not locate that note"))
 		return
 	}
 
@@ -49,6 +48,8 @@ func (n *Note) Serve(w http.ResponseWriter, r *http.Request) {
 	noteTemp := template.Must(template.New("note").ParseFiles(htmlTemplates("note")...))
 	err = noteTemp.Execute(w, n) // we pass the writer as output and the note for content
 	if err != nil {
-		n.l.Fatal(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Failed to load template for the note"))
+		return
 	}
 }

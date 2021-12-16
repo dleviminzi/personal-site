@@ -56,7 +56,9 @@ func (pl *ProjectList) dbFetch() error {
 func (pl *ProjectList) Serve(w http.ResponseWriter, r *http.Request) {
 	err := pl.dbFetch()
 	if err != nil {
-		pl.l.Fatal(err)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("Could not locate that note"))
+		return
 	}
 	w.Header().Add("Strict-Transport-Security", "max-age=63072000; includeSubDomains")
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
@@ -65,6 +67,8 @@ func (pl *ProjectList) Serve(w http.ResponseWriter, r *http.Request) {
 	projectTemp := template.Must(template.New("projects").ParseFiles(htmlTemplates("projects")...))
 	err = projectTemp.Execute(w, pl)
 	if err != nil {
-		pl.l.Fatal(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Failed to load template for projects"))
+		return
 	}
 }

@@ -57,8 +57,11 @@ func (nl *NoteList) dbFetch() error {
 func (nl *NoteList) Serve(w http.ResponseWriter, r *http.Request) {
 	err := nl.dbFetch()
 	if err != nil {
-		nl.l.Fatal(err)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("Could not locate that note"))
+		return
 	}
+
 	w.Header().Add("Strict-Transport-Security", "max-age=63072000; includeSubDomains")
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
@@ -67,6 +70,8 @@ func (nl *NoteList) Serve(w http.ResponseWriter, r *http.Request) {
 	nlTemp := template.Must(template.New("notes").ParseFiles(htmlTemplates("notes")...))
 	err = nlTemp.Execute(w, nl)
 	if err != nil {
-		nl.l.Fatal(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Failed to load template for notes list"))
+		return
 	}
 }
