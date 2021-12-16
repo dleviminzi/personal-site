@@ -1,18 +1,22 @@
 {{define "notes"}}
 {{template "header" .}}
 {{template "nav" .}}
-<h3><u>Notes</u></h3>
-{{range .Notes}}
-<div class='page-content'>
-    <h4>
-        <!-- need to add path to notes/title-of-note -->
-        <a href="/notes/{{.Title}}">
-            {{.Title}}
-        </a>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {{.Topic}}
-    </h4>
-    {{.Content}}
+<div class="container">
+    <div class="row">
+        <div class='text-left'>
+            <h2>Notes</h2>
+            <p class="lead"> This is a collection of notes. Topics range from reviews of movies and books to
+                thoughts on technologies, companies, and food. It will be very random. </p>
+            {{range .Notes}}
+            <h4>
+                <a href="/notes/{{.Title}}">
+                    {{.Title}}
+                </a>
+            </h4>
+            <h6>{{.Topic}}: {{.Content}}</h6>
+            {{end}}
+        </div>
+    </div>
 </div>
-{{end}}
 {{template "footer"}}
 {{end}}

@@ -1,17 +1,24 @@
 {{define "projects"}}
 {{template "header" .}}
 {{template "nav" .}}
-{{range .Projects}}
-<div class='page-content'>
-    <h3> {{.Title}}</h3>
-    <h6>
-        {{.StartDate.Format "Jan 02, 2006"}} - {{.EndDate.Format "Jan 02, 2006"}}
-    </h6>
-    <h6>
-        <a href={{.GithubLink}}>github</a>
-    </h6>
-    <p>{{.Description}}</p>
+<div class="container">
+    <div class="row">
+        <div class='text-left'>
+            <h2>Projects</h2>
+            <p class="lead"> Here are the various projects that I've worked on. Most (who am I kidding, all) of them 
+                are half-baked and have zero people actively using them. Maybe one day a true winner will appear here. </p>
+            {{range .Projects}}
+            <h4> {{.Title}}</h4>
+            <h6>
+                {{.StartDate.Format "Jan 02, 2006"}} - {{.EndDate.Format "Jan 02, 2006"}}
+            </h6>
+            <h6>
+                <a href={{.GithubLink}}>github</a>
+            </h6>
+            <p>{{.Description}}</p>
+            {{end}}
+        </div>
+    </div>
 </div>
-{{end}}
 {{template "footer"}}
 {{end}}
